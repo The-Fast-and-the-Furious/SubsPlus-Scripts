@@ -17,6 +17,8 @@ import audioread.ffdec
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
+import re
+from datetime import datetime
 
 ### Chapter Names
 PRE_OP = "Prologue"
@@ -94,6 +96,11 @@ def parse_args():
     parser.add_argument(
         "--charts", "-c", default=False, action="store_true",
         help="Make charts of where themes are matched in the episode. They can almost double processing time in some cases though.",
+    )
+
+    parser.add_argument(
+        "--ffmpeg-format", default=False, action="store_true",
+        help="Saves chapters in ffmpeg metadata format.",
     )
 
     args = parser.parse_args()
@@ -314,6 +321,33 @@ def chapter_validator(offset_list, file_duration):
         print("Chapters not valid. Invalid number of offsets", file=sys.stderr)
         return False
 
+def parse_timecode(timecode):
+    time_obj = datetime.strptime(timecode, "%H:%M:%S.%f")
+    return (time_obj.hour * 3600 + time_obj.minute * 60 + time_obj.second) * 1000 + int(
+        time_obj.microsecond / 1000
+    )
+
+def convert_to_ffmeta(input_data):
+    chapters = re.findall(r"CHAPTER(\d+)=([\d:.]+)\nCHAPTER\1NAME=(\w+)", input_data)
+    ffmeta_chapters = [";FFMETADATA1", ""]
+
+    for i, (num, timecode, name) in enumerate(chapters):
+        start_time = parse_timecode(timecode)
+        end_time = (
+            parse_timecode(chapters[i + 1][1])
+            if i + 1 < len(chapters)
+            else start_time + 1000
+        )
+        ffmeta_chapters.append("[CHAPTER]")
+        ffmeta_chapters.append("TIMEBASE=1/1000")
+        ffmeta_chapters.append(f"START={start_time}")
+        ffmeta_chapters.append(f"END={end_time}")
+        ffmeta_chapters.append(f"TITLE={name}")
+        ffmeta_chapters.append("")
+
+    return "\n".join(ffmeta_chapters)
+
+
 def generate_chapters(offset_list, file_duration, args):
     outfile = open(args.output, "w", encoding="utf-8")
     snap_beginning = False
@@ -363,6 +397,12 @@ def generate_chapters(offset_list, file_duration, args):
                 outfile.write(f"CHAPTER05NAME={POST_ED}\n")
 
     outfile.close()
+
+    if args.ffmpeg_format:
+        ffmeta_output = convert_to_ffmeta(Path(args.output).read_text())
+
+        with open(args.output, "w") as out_file:
+            out_file.write(ffmeta_output)
 
 def validate_themes(args, t_path):
     if args.no_download:
