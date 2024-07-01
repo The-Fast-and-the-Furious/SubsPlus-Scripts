@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 ### Chapter Names
 PRE_OP = "Prologue"
 OPENING = "Opening"
-EPISODE = "Episode"
+EPISODE = "Main"
 ENDING = "Ending"
 POST_ED = "Epilogue"
 
