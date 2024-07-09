@@ -158,7 +158,7 @@ def download_theme(t_path, theme_name, url):
         download_path += ".ogg"
         with open(download_path, "wb") as file:
             file.write(response.content)
-        print(f"{theme_name}: Downloaded     ", file=sys.stderr)
+        print(f"{theme_name}: Downloaded     ")
     else:
         print(f"Failed to download {theme_name}. Status code:", response.status_code, file=sys.stderr)
 
@@ -198,7 +198,7 @@ def download_themes(t_path, args, series_json):
                         video["audio"]["link"] not in audio_links and \
                         os.path.isfile(os.path.join(t_path, full_cur_theme + ".ogg")):
                             audio_links.append(video["audio"]["link"])
-                            print(f"{full_cur_theme}: Found in directory", file=sys.stderr)
+                            print(f"{full_cur_theme}: Found in directory")
                             audio_version += 1
                             break
                 except Exception:
@@ -281,14 +281,14 @@ def find_offset(y_episode, sr_episode, theme_file, t_path, args):
     offset = max(round((match_idx - silence_length) / (sr_episode / args.downsample), 2), 0)
 
     if score > required_score:
-        print(f"{theme_name}: Matched from {get_timestamp(offset)} -> {get_timestamp(offset + duration)}", file=sys.stderr)
+        print(f"{theme_name}: Matched from {get_timestamp(offset)} -> {get_timestamp(offset + duration)}")
         if args.charts:
             with ProcessPoolExecutor() as executor:
                 executor.submit(generate_chart, theme_name, c, t_path, True)
         return offset, (offset + duration)
 
     else:
-        print(f"{theme_name}: Not matched", file=sys.stderr)
+        print(f"{theme_name}: Not matched")
         if args.charts:
             with ProcessPoolExecutor() as executor:
                 executor.submit(generate_chart, theme_name, c, t_path, False)
@@ -301,7 +301,7 @@ def get_timestamp(timesec):
 def chapter_validator(offset_list, file_duration):
     if len(offset_list) == 0:
         print_seperator()
-        print("No matches", file=sys.stderr)
+        print("No matches")
         return False
     elif len(offset_list) == 2:
         return True
@@ -420,7 +420,7 @@ def try_download(args, t_path):
         print("Searching AnimeThemes...", end="", flush=True)
         try:
             series_json = get_series_json(args)
-            print(f'\rAnimeThemes matched series: {series_json["name"]}', file=sys.stderr)
+            print(f'\rAnimeThemes matched series: {series_json["name"]}')
             print_seperator()
             download_themes(t_path, args, series_json)
             print_seperator()
@@ -456,7 +456,7 @@ def process_themes(t_path, args, theme_files, theme_type, y_episode, sr_episode)
         local_offset_list = []
         for (theme_name, theme_path) in theme_files:
             if theme_type in theme_name and matched_flag:
-                print(f"{theme_name}: Skipping because already matched an {theme_type}", file=sys.stderr)
+                print(f"{theme_name}: Skipping because already matched an {theme_type}")
                 continue
             offset1, offset2 = find_offset(y_episode, sr_episode, theme_path, t_path, args)
             if offset1 is not None:
@@ -581,7 +581,7 @@ def snap(args, offset_list):
     return snapped_offsets
 
 def print_snapped_times(offset_list, file_duration, args):
-    print("\rSnapped times:        ", file=sys.stderr)
+    print("\rSnapped times:        ")
 
     # Episode duration snapping
     ep_snapped_offsets = offset_list.copy()
@@ -591,10 +591,10 @@ def print_snapped_times(offset_list, file_duration, args):
     if ep_snapped_offsets[-1] > (file_duration - args.episode_snap):
         ep_snapped_offsets[-1] = file_duration
 
-    print(f"{get_timestamp(ep_snapped_offsets[0])} -> {get_timestamp(ep_snapped_offsets[1])}", file=sys.stderr)
+    print(f"{get_timestamp(ep_snapped_offsets[0])} -> {get_timestamp(ep_snapped_offsets[1])}")
 
     if len(ep_snapped_offsets) == 4:
-        print(f"{get_timestamp(ep_snapped_offsets[2])} -> {get_timestamp(ep_snapped_offsets[3])}", file=sys.stderr)
+        print(f"{get_timestamp(ep_snapped_offsets[2])} -> {get_timestamp(ep_snapped_offsets[3])}")
 
 def main():
     args = parse_args()
