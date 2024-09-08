@@ -103,6 +103,11 @@ def parse_args():
         help="Saves chapters in ffmpeg metadata format.",
     )
 
+    parser.add_argument(
+        "--timeout", type=int, default=60,
+        help="Timeout for requests.",
+    )
+
     args = parser.parse_args()
     args.no_download = False
 
@@ -146,13 +151,13 @@ def get_series_json(args):
             api_search_call += f"&filter[year-gte]={abs(args.year)}"
         else:
             api_search_call += f"&filter[year]={args.year}"
-    global_search = requests.get(api_search_call).json()
+    global_search = requests.get(api_search_call, timeout=args.timeout).json()
     series_slug = global_search["search"]["anime"][0]["slug"]
-    series_json = requests.get(f"https://api.animethemes.moe/anime/{series_slug}?include=animethemes.animethemeentries.videos.audio&fields[audio]=filename,updated_at,link").json()
+    series_json = requests.get(f"https://api.animethemes.moe/anime/{series_slug}?include=animethemes.animethemeentries.videos.audio&fields[audio]=filename,updated_at,link", timeout=args.timeout).json()
     return series_json["anime"]
 
-def download_theme(t_path, theme_name, url):
-    response = requests.get(url)
+def download_theme(t_path, theme_name, url, args):
+    response = requests.get(url, timeout=args.timeout)
     if response.status_code == 200:
         download_path = f'{t_path}/{theme_name}'
         download_path += ".ogg"
@@ -216,7 +221,7 @@ def download_themes(t_path, args, series_json):
         print("Downloading themes...")
 
     with ThreadPoolExecutor(max_workers=args.parallel_dl) as executor:
-        future_to_url = {executor.submit(download_theme, t_path, theme, url): (theme, url) for (theme, url) in need_download}
+        future_to_url = {executor.submit(download_theme, t_path, theme, url, args): (theme, url) for (theme, url) in need_download}
         for future in as_completed(future_to_url):
             url = future_to_url[future]
             try:
