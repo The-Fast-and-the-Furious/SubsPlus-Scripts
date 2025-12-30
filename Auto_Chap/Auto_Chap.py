@@ -108,6 +108,11 @@ def parse_args():
         help="Timeout for requests.",
     )
 
+    parser.add_argument(
+        "--proxy", type=str,
+        help="Proxy URL (e.g., http://user:pass@host:port)."
+    )
+
     args = parser.parse_args()
     args.no_download = False
 
@@ -134,6 +139,14 @@ def parse_args():
 
     args.episode_audio_path = None
 
+    if args.proxy:
+        args.proxies = {
+            "http": args.proxy,
+            "https": args.proxy,
+        }
+    else:
+        args.proxies = None
+
     return args
 
 def print_seperator():
@@ -151,13 +164,13 @@ def get_series_json(args):
             api_search_call += f"&filter[year-gte]={abs(args.year)}"
         else:
             api_search_call += f"&filter[year]={args.year}"
-    global_search = requests.get(api_search_call, timeout=args.timeout).json()
+    global_search = requests.get(api_search_call, proxies=args.proxies, timeout=args.timeout).json()
     series_slug = global_search["search"]["anime"][0]["slug"]
-    series_json = requests.get(f"https://api.animethemes.moe/anime/{series_slug}?include=animethemes.animethemeentries.videos.audio&fields[audio]=filename,updated_at,link", timeout=args.timeout).json()
+    series_json = requests.get(f"https://api.animethemes.moe/anime/{series_slug}?include=animethemes.animethemeentries.videos.audio&fields[audio]=filename,updated_at,link", proxies=args.proxies, timeout=args.timeout).json()
     return series_json["anime"]
 
 def download_theme(t_path, theme_name, url, args):
-    response = requests.get(url, timeout=args.timeout)
+    response = requests.get(url, proxies=args.proxies, timeout=args.timeout)
     if response.status_code == 200:
         download_path = f'{t_path}/{theme_name}'
         download_path += ".ogg"
