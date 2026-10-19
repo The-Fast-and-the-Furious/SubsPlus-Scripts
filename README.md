@@ -35,6 +35,7 @@ usage: Auto_Chap.py [-h] --input INPUT [--output OUTPUT] [--search-name SEARCH_N
                     [--snap [SNAP]] [--episode-snap EPISODE_SNAP] [--score SCORE]
                     [--theme-portion THEME_PORTION] [--downsample DOWNSAMPLE] [--parallel-dl PARALLEL_DL]
                     [--work-path WORK_PATH] [--delete-themes] [--charts]
+                    [--ffmpeg-format] [--timeout TIMEOUT] [--proxy PROXY]
 
 Automatic anime chapter generator using AnimeThemes.
 
@@ -72,6 +73,9 @@ options:
   --delete-themes, -d   Delete the themes and charts after running.
   --charts, -c          Make charts of where themes are matched in the episode. They can almost double
                         processing time in some cases though.
+  --ffmpeg-format       Saves chapters in ffmpeg metadata format.
+  --timeout TIMEOUT     Timeout for requests. Defaults to 60.
+  --proxy PROXY         Proxy URL (e.g., http://user:pass@host:port).
 ```
 
 #### Examples
